@@ -57,8 +57,9 @@ update_svg_text('speaker', speaker)
 # Guardar el SVG modificado
 tree.write('your_poster.svg')
 
-# Convertir y guardar el SVG como PNG
+# Conversiones
 cairosvg.svg2png(url='your_poster.svg', write_to='your_poster.png')
-
-# Convertir y guardar el SVG como JPG
 cairosvg.svg2png(url='your_poster.svg', write_to='your_poster.jpg')
+cairosvg.svg2pdf(url='your_poster.svg', write_to='your_poster.pdf')
+cairosvg.svg2eps(url='your_poster.svg', write_to='your_poster.eps')
+cairosvg.svg2ps(url='your_poster.svg', write_to='your_poster.ps')
