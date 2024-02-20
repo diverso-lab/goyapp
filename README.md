@@ -23,6 +23,11 @@ Instala las dependencias necesarias con el comando:
 pip install -r requirements.txt
 ```
 
+## Definición del markdown
+
+En `event_details.md` puedes definir qué información quieres mostrar en el póster
+
+
 ## Ejecución del Generador
 
 Para ejecutar el generador, utiliza el comando:
