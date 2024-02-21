@@ -58,8 +58,9 @@ update_svg_text('speaker', speaker)
 tree.write('your_poster.svg')
 
 # Conversiones
-cairosvg.svg2png(url='your_poster.svg', write_to='your_poster.png')
-cairosvg.svg2png(url='your_poster.svg', write_to='your_poster.jpg')
+dpi=300
+cairosvg.svg2png(url='your_poster.svg', write_to='your_poster.png', dpi=dpi)
+cairosvg.svg2png(url='your_poster.svg', write_to='your_poster.jpg',  dpi=dpi)
 cairosvg.svg2pdf(url='your_poster.svg', write_to='your_poster.pdf')
 cairosvg.svg2eps(url='your_poster.svg', write_to='your_poster.eps')
 cairosvg.svg2ps(url='your_poster.svg', write_to='your_poster.ps')
