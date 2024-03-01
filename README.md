@@ -25,7 +25,7 @@ pip install -r requirements.txt
 
 ## Definición del Markdown
 
-En `event_details.md` puedes definir qué información quieres mostrar en el póster
+En `markdowns/example.md` puedes definir qué información quieres mostrar en el póster
 
 
 ## Ejecución del Generador
@@ -36,14 +36,20 @@ Para ejecutar el generador, utiliza el comando:
 python main.py
 ```
 
+# Archivos Generados por el Script
 
-## Archivos Generados
+Al ejecutar el script, se generarán los siguientes archivos en la carpeta `posters`, organizados en subcarpetas nombradas según el archivo Markdown de origen:
 
-El script generará los siguientes archivos:
+- `posters/{nombre_del_md}/{nombre_del_md}.svg`: Este es el póster original generado en formato SVG, donde `{nombre_del_md}` es el nombre del archivo Markdown de origen sin la extensión `.md`.
 
-- `your_poster.svg`: El póster en formato SVG.
-- `your_poster.png`: El póster convertido a formato PNG.
-- `your_poster.jpg`: El póster convertido a formato JPG.
-- `your_poster.pdf`: El póster convertido a formato PDF.
-- `your_poster.eps`: El póster convertido a formato EPS.
-- `your_poster.ps`: El póster convertido a formato PS.
+- `posters/{nombre_del_md}/{nombre_del_md}.png`: Este archivo es la conversión del póster a formato PNG, ubicado en la misma subcarpeta que el archivo SVG.
+
+- `posters/{nombre_del_md}/{nombre_del_md}.jpg`: Similar al archivo PNG, esta es la versión del póster en formato JPG.
+
+- `posters/{nombre_del_md}/{nombre_del_md}.pdf`: El póster también se convierte a formato PDF, facilitando su impresión o distribución en un formato ampliamente utilizado.
+
+- `posters/{nombre_del_md}/{nombre_del_md}.eps`: Para aplicaciones que requieren formatos de gráficos vectoriales, el póster se convierte a formato EPS.
+
+- `posters/{nombre_del_md}/{nombre_del_md}.ps`: Finalmente, se genera una versión del póster en formato PostScript (PS), adecuado para ciertos entornos de impresión profesional.
+
+Cada archivo se almacena dentro de una subcarpeta específica en `posters`, asegurando una organización clara y facilitando el acceso a los pósters generados para cada evento descrito en los archivos Markdown.
