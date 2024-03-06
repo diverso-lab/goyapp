@@ -3,3 +3,6 @@ venv/
 markdowns/*
 !markdowns/example.md
 posters/*
+posters_16_9/*
+posters_16_9.zip
+.DS_Store
