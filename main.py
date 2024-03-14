@@ -57,7 +57,7 @@ def process_markdown_file(markdown_file_path, svg_template_path, output_base_nam
 markdown_folder_path = 'markdowns'
 
 # Ruta de la plantilla SVG
-svg_template_path = 'poster_template_16_9.svg'
+svg_template_path = 'poster_template.svg'
 
 # Utilizar glob para encontrar todos los archivos .md en la carpeta
 markdown_files = glob.glob(os.path.join(markdown_folder_path, '*.md'))
