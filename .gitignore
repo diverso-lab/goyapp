@@ -1,5 +1,6 @@
 myenv/
 venv/
+env/
 markdowns/*
 !markdowns/example.md
 posters/*
