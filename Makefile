@@ -1,0 +1,2 @@
+poster:
+	python main.py

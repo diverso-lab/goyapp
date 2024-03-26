@@ -4,6 +4,12 @@ import xml.etree.ElementTree as ET
 import cairosvg
 import os
 import glob
+import configparser
+
+def read_properties_file(filename):
+    config = configparser.ConfigParser()
+    config.read(filename)
+    return config['Settings']
 
 def update_svg_text(root, namespaces, element_id, new_text):
     lines = new_text.upper().split('\n')
@@ -56,8 +62,13 @@ def process_markdown_file(markdown_file_path, svg_template_path, output_base_nam
 # Definir la ruta a la carpeta que contiene los archivos Markdown
 markdown_folder_path = 'markdowns'
 
-# Ruta de la plantilla SVG
-svg_template_path = 'poster_template.svg'
+properties = read_properties_file('config.ini')
+if properties['orientation'] == 'landscape':
+    # Ruta de la plantilla horizontal SVG
+    svg_template_path = 'poster_template_16_9.svg'
+else:
+    # Ruta de la plantilla por defecto, vertial del SVG
+    svg_template_path = 'poster_template.svg'
 
 # Utilizar glob para encontrar todos los archivos .md en la carpeta
 markdown_files = glob.glob(os.path.join(markdown_folder_path, '*.md'))
