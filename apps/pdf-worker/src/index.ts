@@ -16,6 +16,7 @@ const batchSchema = z.object({
 });
 
 const PORT = Number(process.env.PORT ?? 4000);
+const WORKER_SECRET = process.env.WORKER_SECRET ?? "";
 
 let browserPromise: Promise<Browser> | null = null;
 async function getBrowser() {
@@ -66,10 +67,24 @@ const app = Fastify({ logger: true, bodyLimit: 50 * 1024 * 1024 });
 
 app.get("/health", async () => ({ ok: true }));
 
+// Shared-secret gate for /render and /batch. /health stays open so Docker can health-check.
+app.addHook("preHandler", async (req, reply) => {
+  if (req.url === "/health") return;
+  if (!WORKER_SECRET) return; // fail-open when not configured (dev convenience)
+  const provided = req.headers["x-worker-secret"];
+  if (provided !== WORKER_SECRET) {
+    return reply.code(401).send({ error: "Unauthorized" });
+  }
+});
+
 app.post("/render", async (req, reply) => {
   const parsed = singleSchema.safeParse(req.body);
   if (!parsed.success) return reply.code(400).send({ error: "Invalid input" });
   const { svg, width, height, filename } = parsed.data;
+
+  if (!/<svg[\s>]/i.test(svg)) {
+    return reply.code(400).send({ error: "Body is not an SVG" });
+  }
 
   const browser = await getBrowser();
   const page = await browser.newPage();
@@ -77,8 +92,11 @@ app.post("/render", async (req, reply) => {
     const pdf = await renderSvgToPdf(page, svg, width, height);
     reply
       .header("content-type", "application/pdf")
-      .header("content-disposition", `attachment; filename="${filename}.pdf"`)
+      .header("content-disposition", contentDisposition(`${filename}.pdf`))
       .send(pdf);
+  } catch (err) {
+    req.log.error({ err }, "PDF render failed");
+    return reply.code(422).send({ error: (err as Error).message });
   } finally {
     await page.close();
   }
@@ -95,7 +113,7 @@ app.post("/batch", async (req, reply) => {
   const archive = archiver("zip", { zlib: { level: 9 } });
   reply.raw.writeHead(200, {
     "content-type": "application/zip",
-    "content-disposition": `attachment; filename="${zipName}.zip"`,
+    "content-disposition": contentDisposition(`${zipName}.zip`),
   });
   archive.pipe(reply.raw);
 
@@ -127,6 +145,13 @@ app.post("/batch", async (req, reply) => {
 
 function sanitize(s: string) {
   return s.replace(/[^\w.-]+/g, "_").slice(0, 80);
+}
+
+/** Build a Content-Disposition that is safe in HTTP headers AND carries the
+ *  original UTF-8 filename via RFC 5987 so downloaders see the right name. */
+function contentDisposition(filename: string): string {
+  const ascii = filename.replace(/[^\x20-\x7E]/g, "_").replace(/"/g, "_").slice(0, 100);
+  return `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(filename)}`;
 }
 
 app.listen({ port: PORT, host: "0.0.0.0" }).catch((err) => {

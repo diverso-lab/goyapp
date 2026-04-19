@@ -27,10 +27,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!user) return null;
         const ok = await bcrypt.compare(parsed.data.password, user.passwordHash);
         if (!ok) return null;
-        return { id: user.id, email: user.email, name: user.name ?? undefined };
+        return { id: user.id, email: user.email, name: user.name ?? undefined, role: user.role };
       },
     }),
   ],
+  callbacks: {
+    ...authConfig.callbacks,
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = (user as { role?: string }).role ?? "USER";
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        if (token?.id) session.user.id = token.id as string;
+        session.user.role = (token?.role as "USER" | "ADMIN") ?? "USER";
+      }
+      return session;
+    },
+  },
 });
 
 declare module "next-auth" {
@@ -40,6 +57,10 @@ declare module "next-auth" {
       email?: string | null;
       name?: string | null;
       image?: string | null;
+      role: "USER" | "ADMIN";
     };
+  }
+  interface User {
+    role?: "USER" | "ADMIN";
   }
 }

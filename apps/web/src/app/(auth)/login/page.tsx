@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input, Label } from "@/components/ui/input";
+import { Logo } from "@/components/logo";
+import { Footer } from "@/components/footer";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,56 +17,42 @@ export default function LoginPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setErr(null);
-    setLoading(true);
+    setErr(null); setLoading(true);
     const res = await signIn("credentials", { email, password, redirect: false });
     setLoading(false);
-    if (res?.error) {
-      setErr("Wrong email or password");
-      return;
-    }
-    router.push("/dashboard");
-    router.refresh();
+    if (res?.error) { setErr("Wrong email or password"); return; }
+    router.push("/dashboard"); router.refresh();
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-6">
-      <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4 rounded-lg border bg-card p-6">
-        <h1 className="text-2xl font-bold">Log in</h1>
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Email</label>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full h-10 rounded-md border bg-background px-3 text-sm"
-          />
+    <main className="min-h-screen flex flex-col bg-gradient-to-b from-slate-50 to-slate-100">
+      <div className="flex-1 flex items-center justify-center px-6">
+      <form onSubmit={onSubmit} className="w-full max-w-sm space-y-5 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="flex flex-col items-center gap-3">
+          <Logo className="h-10 w-auto" />
+          <div className="text-center">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Welcome back</h1>
+            <p className="text-sm text-slate-500 mt-0.5">Sign in to continue.</p>
+          </div>
         </div>
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Password</label>
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full h-10 rounded-md border bg-background px-3 text-sm"
-          />
+        <div>
+          <Label>Email</Label>
+          <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
         </div>
-        {err && <p className="text-sm text-destructive">{err}</p>}
-        <button
-          disabled={loading}
-          className="w-full h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50"
-        >
+        <div>
+          <Label>Password</Label>
+          <Input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
+        </div>
+        {err && <p className="text-sm text-red-600">{err}</p>}
+        <Button type="submit" variant="primary" size="lg" className="w-full" disabled={loading}>
           {loading ? "Signing in…" : "Log in"}
-        </button>
-        <p className="text-sm text-muted-foreground text-center">
-          No account?{" "}
-          <Link className="underline" href="/register">
-            Create one
-          </Link>
+        </Button>
+        <p className="text-xs text-center text-slate-400">
+          Need an account? Ask an administrator to invite you.
         </p>
       </form>
+      </div>
+      <Footer />
     </main>
   );
 }

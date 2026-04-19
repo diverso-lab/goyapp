@@ -6,39 +6,93 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 210 20% 98%;
     --foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 210 16% 93%;
+    --muted-foreground: 215 14% 40%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
-    --border: 214 32% 91%;
+    --border: 214 20% 89%;
     --primary: 222 47% 11%;
     --primary-foreground: 210 40% 98%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 24 95% 53%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    --radius: 0.6rem;
-  }
-  .dark {
-    --background: 222 47% 8%;
-    --foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --card: 222 47% 10%;
-    --card-foreground: 210 40% 98%;
-    --border: 217 33% 20%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222 47% 11%;
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 40%;
-    --destructive-foreground: 210 40% 98%;
+    --radius: 0.625rem;
   }
   * { @apply border-border; }
+  html, body { height: 100%; }
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
+  button { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+}
+
+/* Remove default underline behavior that feels "bootstrap-y" */
+a { color: inherit; text-decoration: none; }
+
+/* -------- Dark mode overrides --------
+   Rather than refactor every component to use `dark:` prefixes, we remap the
+   most-used slate utilities when `html.dark` is active. It's pragmatic and
+   the palette is based on slate only. */
+
+html.dark { color-scheme: dark; }
+html.dark body { background: #0b1220; color: #e2e8f0; }
+
+html.dark .bg-slate-50 { background-color: #0b1220 !important; }
+html.dark .bg-slate-100 { background-color: #1e293b !important; }
+html.dark .bg-white { background-color: #111827 !important; }
+html.dark .bg-white\/50 { background-color: rgba(17, 24, 39, 0.5) !important; }
+html.dark .bg-white\/80 { background-color: rgba(17, 24, 39, 0.8) !important; }
+html.dark .bg-card { background-color: #111827 !important; }
+html.dark .text-slate-900 { color: #f1f5f9 !important; }
+html.dark .text-slate-800 { color: #e2e8f0 !important; }
+html.dark .text-slate-700 { color: #cbd5e1 !important; }
+html.dark .text-slate-600 { color: #94a3b8 !important; }
+html.dark .text-slate-500 { color: #94a3b8 !important; }
+html.dark .text-slate-400 { color: #64748b !important; }
+html.dark .border-slate-200 { border-color: #334155 !important; }
+html.dark .border-slate-300 { border-color: #475569 !important; }
+html.dark .border-slate-100 { border-color: #1e293b !important; }
+html.dark .ring-slate-200\/60 { --tw-ring-color: rgba(51, 65, 85, 0.6) !important; }
+html.dark .shadow-sm, html.dark .shadow-md, html.dark .shadow-lg, html.dark .shadow-2xl {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+}
+html.dark .hover\:bg-slate-50:hover { background-color: #1e293b !important; }
+html.dark .hover\:bg-slate-100:hover { background-color: #334155 !important; }
+html.dark .hover\:border-slate-300:hover { border-color: #475569 !important; }
+
+/* Dashboard gradient */
+html.dark .from-slate-50 { --tw-gradient-from: #0b1220 !important; }
+html.dark .to-slate-100 { --tw-gradient-to: #111827 !important; }
+
+/* Primary buttons stay dark-on-light in light mode; flip to light-on-dark in dark */
+html.dark .bg-slate-900 { background-color: #e2e8f0 !important; color: #0b1220 !important; }
+html.dark .bg-slate-900.text-white, html.dark .bg-slate-900 .text-white { color: #0b1220 !important; }
+html.dark .hover\:bg-slate-800:hover { background-color: #cbd5e1 !important; }
+html.dark .active\:bg-slate-950:active { background-color: #f1f5f9 !important; }
+
+/* Preview tile (dashboard thumbnails) */
+.goyapp-preview-frame {
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+}
+html.dark .goyapp-preview-frame {
+  background: linear-gradient(180deg, #0b1220 0%, #111827 100%);
+}
+.goyapp-preview-img {
+  background: #ffffff;
+  box-shadow: 0 6px 16px -4px rgba(15, 23, 42, 0.18), 0 2px 4px rgba(15, 23, 42, 0.06);
+}
+html.dark .goyapp-preview-img {
+  background: #ffffff; /* posters are still rendered on white inside a dark frame */
+  box-shadow: 0 10px 24px -6px rgba(0, 0, 0, 0.6), 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* Dotted canvas pattern is very faint — invert dot color */
+html.dark .bg-\[radial-gradient\(circle_at_center\,rgba\(15\,23\,42\,0\.06\)_1px\,transparent_1px\)\] {
+  background-image: radial-gradient(circle at center, rgba(226, 232, 240, 0.08) 1px, transparent 1px) !important;
 }

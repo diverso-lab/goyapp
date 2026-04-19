@@ -13,11 +13,19 @@ export const authConfig: NextAuthConfig = {
       return true;
     },
     async jwt({ token, user }) {
-      if (user) token.id = user.id;
+      if (user) {
+        token.id = user.id;
+        const u = user as { role?: string };
+        if (u.role) token.role = u.role;
+      }
       return token;
     },
     async session({ session, token }) {
-      if (token?.id && session.user) session.user.id = token.id as string;
+      if (session.user) {
+        if (token?.id) session.user.id = token.id as string;
+        const r = (token as { role?: string }).role;
+        session.user.role = (r === "ADMIN" ? "ADMIN" : "USER");
+      }
       return session;
     },
   },

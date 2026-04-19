@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import * as fabric from "fabric";
+import { Button } from "@/components/ui/button";
+import { Input, Textarea, Label } from "@/components/ui/input";
+import { Footer } from "@/components/footer";
 
 const SERIALIZE_PROPS = ["slot"];
 
@@ -17,6 +20,7 @@ type Template = {
 type FabricObjectJSON = Record<string, unknown> & { slot?: string; text?: string };
 
 export function BatchClient({ template }: { template: Template }) {
+  const router = useRouter();
   const slots = useMemo(() => collectSlots(template.scene), [template.scene]);
 
   const sampleRow = useMemo(() => {
@@ -26,7 +30,11 @@ export function BatchClient({ template }: { template: Template }) {
   }, [slots]);
 
   const [jsonText, setJsonText] = useState<string>(() =>
-    JSON.stringify([sampleRow, { ...sampleRow, ...(slots[0] ? { [slots[0]]: "Second poster" } : {}) }], null, 2),
+    JSON.stringify(
+      [sampleRow, { ...sampleRow, ...(slots[0] ? { [slots[0]]: "Second poster" } : {}) }],
+      null,
+      2,
+    ),
   );
   const [rows, setRows] = useState<Record<string, string>[]>([]);
   const [parseError, setParseError] = useState<string | null>(null);
@@ -52,7 +60,6 @@ export function BatchClient({ template }: { template: Template }) {
     setBusy(true);
     setStatus("Rendering variants…");
     setProgress({ done: 0, total: rows.length });
-
     try {
       const items: { svg: string; width: number; height: number; filename: string }[] = [];
       const offscreen = document.createElement("canvas");
@@ -69,12 +76,7 @@ export function BatchClient({ template }: { template: Template }) {
         canvas.renderAll();
         const svg = canvas.toSVG();
         const nameRaw = (filenameField && row[filenameField]) || `${template.name}-${i + 1}`;
-        items.push({
-          svg,
-          width: template.width,
-          height: template.height,
-          filename: String(nameRaw),
-        });
+        items.push({ svg, width: template.width, height: template.height, filename: String(nameRaw) });
         setProgress({ done: i + 1, total: rows.length });
       }
       canvas.dispose();
@@ -89,11 +91,8 @@ export function BatchClient({ template }: { template: Template }) {
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = `${template.name}.zip`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
+      a.href = url; a.download = `${template.name}.zip`;
+      document.body.appendChild(a); a.click(); a.remove();
       URL.revokeObjectURL(url);
       setStatus(`Done — ${rows.length} poster${rows.length === 1 ? "" : "s"} generated.`);
     } catch (e) {
@@ -104,75 +103,81 @@ export function BatchClient({ template }: { template: Template }) {
   }
 
   return (
-    <main className="min-h-screen">
-      <header className="flex items-center justify-between border-b px-6 py-4">
+    <main className="min-h-screen bg-slate-50 flex flex-col">
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/80 backdrop-blur px-8 py-4">
         <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="text-sm hover:underline">← Back</Link>
-          <h1 className="text-lg font-semibold">Batch generate — {template.name}</h1>
+          <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard")}>← Dashboard</Button>
+          <div>
+            <h1 className="text-base font-semibold text-slate-900">Batch generate</h1>
+            <p className="text-xs text-slate-500">{template.name} — {rows.length} row{rows.length === 1 ? "" : "s"}</p>
+          </div>
         </div>
+        <Button variant="secondary" size="sm" onClick={() => router.push(`/templates/${template.id}/fill`)}>
+          Single fill-in
+        </Button>
       </header>
 
-      <div className="mx-auto max-w-5xl px-6 py-8 grid grid-cols-1 md:grid-cols-[1fr_320px] gap-8">
+      <div className="max-w-6xl mx-auto px-8 py-8 grid grid-cols-1 md:grid-cols-[1fr_320px] gap-8">
         <section className="space-y-3">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-sm font-semibold">Rows (JSON array)</h2>
-            <span className="text-xs text-muted-foreground">{rows.length} row{rows.length === 1 ? "" : "s"}</span>
+            <Label className="mb-0">Rows (JSON array)</Label>
           </div>
-          <textarea
+          <Textarea
             value={jsonText}
             onChange={(e) => setJsonText(e.target.value)}
-            className="w-full h-[480px] rounded-md border bg-background px-3 py-2 font-mono text-xs"
+            className="h-[480px] font-mono text-xs resize-none"
             spellCheck={false}
           />
-          {parseError && <p className="text-sm text-destructive">{parseError}</p>}
+          {parseError && <p className="text-sm text-red-600">{parseError}</p>}
         </section>
 
         <aside className="space-y-4">
-          <div className="rounded-md border p-4 space-y-3">
-            <h3 className="text-sm font-semibold">Slots in this template</h3>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-sm">
+            <h3 className="text-sm font-semibold text-slate-900">Slots in this template</h3>
             {slots.length === 0 ? (
-              <p className="text-xs text-muted-foreground">
-                This template has no named slots yet. Open it in the editor, select a text object, and set a slot name
-                (e.g. <code>title</code>) to make it substitutable here.
+              <p className="text-xs text-slate-500">
+                This template has no named slots yet. Open it in the editor, select a text object, and set a slot name.
               </p>
             ) : (
-              <ul className="text-xs space-y-1">
+              <ul className="flex flex-wrap gap-1.5">
                 {slots.map((s) => (
-                  <li key={s} className="flex justify-between">
-                    <code className="bg-muted px-1.5 rounded">{s}</code>
+                  <li key={s} className="inline-flex items-center rounded-md bg-orange-50 ring-1 ring-orange-200 text-orange-800 px-2 py-0.5 text-[11px] font-mono">
+                    {s}
                   </li>
                 ))}
               </ul>
             )}
           </div>
 
-          <div className="rounded-md border p-4 space-y-3">
-            <h3 className="text-sm font-semibold">Filename field</h3>
-            <p className="text-xs text-muted-foreground">Which slot value becomes the PDF filename.</p>
-            <select
-              value={filenameField}
-              onChange={(e) => setFilenameField(e.target.value)}
-              className="w-full h-9 rounded-md border bg-background px-2 text-sm"
-            >
-              <option value="">(auto: {template.name}-N)</option>
-              {slots.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3 shadow-sm">
+            <div>
+              <Label>Filename field</Label>
+              <select
+                value={filenameField}
+                onChange={(e) => setFilenameField(e.target.value)}
+                className="w-full h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm shadow-sm"
+              >
+                <option value="">(auto: {template.name}-N)</option>
+                {slots.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
           </div>
 
-          <button
+          <Button
+            variant="primary"
+            size="lg"
+            className="w-full"
             onClick={generate}
             disabled={busy || !rows.length || !!parseError || slots.length === 0}
-            className="w-full h-10 rounded-md bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50"
           >
             {busy
-              ? progress
-                ? `Rendering ${progress.done}/${progress.total}…`
-                : "Working…"
+              ? progress ? `Rendering ${progress.done}/${progress.total}…` : "Working…"
               : `Generate ${rows.length} PDF${rows.length === 1 ? "" : "s"}`}
-          </button>
-          {status && <p className="text-xs text-muted-foreground">{status}</p>}
+          </Button>
+          {status && <p className="text-xs text-slate-500">{status}</p>}
         </aside>
       </div>
+      <Footer />
     </main>
   );
 }

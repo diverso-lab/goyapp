@@ -7,11 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   id            String     @id @default(cuid())
   email         String     @unique
   name          String?
   passwordHash  String
+  role          UserRole   @default(USER)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
   projects      Project[]
@@ -41,11 +47,24 @@ model Project {
   width       Int
   height      Int
   scene       Json
+  shareToken  String?   @unique
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  template Template? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template  Template?          @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  revisions ProjectRevision[]
 
   @@index([userId])
+}
+
+model ProjectRevision {
+  id        String   @id @default(cuid())
+  projectId String
+  scene     Json
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
 }

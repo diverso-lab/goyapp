@@ -24,7 +24,11 @@ export function installSmartGuides(canvas: fabric.Canvas) {
   const onMoving = (e: { target?: fabric.FabricObject }) => {
     const target = e.target;
     if (!target) return;
-    const others = canvas.getObjects().filter((o) => o !== target);
+    // Skip self and everything inside an ActiveSelection (children move together).
+    const inSelection = (target as fabric.ActiveSelection).type === "activeselection"
+      ? new Set((target as fabric.ActiveSelection).getObjects())
+      : new Set<fabric.FabricObject>();
+    const others = canvas.getObjects().filter((o) => o !== target && !inSelection.has(o));
     const me = getEdges(target);
 
     const canvasW = canvas.getWidth() / canvas.getZoom();
@@ -86,9 +90,11 @@ export function installSmartGuides(canvas: fabric.Canvas) {
     if (currentGuides.length === 0) return;
     const ctx = canvas.getContext();
     ctx.save();
-    ctx.strokeStyle = "#ec4899";
-    ctx.lineWidth = 1 / canvas.getZoom();
-    ctx.setLineDash([4 / canvas.getZoom(), 4 / canvas.getZoom()]);
+    ctx.strokeStyle = "#ef4444";
+    ctx.lineWidth = 1.5 / canvas.getZoom();
+    ctx.setLineDash([6 / canvas.getZoom(), 4 / canvas.getZoom()]);
+    ctx.shadowColor = "rgba(239,68,68,0.25)";
+    ctx.shadowBlur = 4 / canvas.getZoom();
     const vpt = canvas.viewportTransform ?? [1, 0, 0, 1, 0, 0];
     const canvasW = canvas.getWidth() / canvas.getZoom();
     const canvasH = canvas.getHeight() / canvas.getZoom();

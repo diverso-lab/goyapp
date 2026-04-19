@@ -42,6 +42,7 @@ services:
       - "4000:4000"
     environment:
       PORT: 4000
+      WORKER_SECRET: ${WORKER_SECRET:-dev-worker-secret-change-me}
 
   web:
     build:
@@ -59,7 +60,9 @@ services:
       AUTH_SECRET: ${AUTH_SECRET:-dev-secret-change-me-please-aaaaaaaaaaaa}
       AUTH_URL: http://localhost:3000
       PDF_WORKER_URL: http://pdf-worker:4000
+      WORKER_SECRET: ${WORKER_SECRET:-dev-worker-secret-change-me}
       S3_ENDPOINT: http://minio:9000
+      S3_PUBLIC_ENDPOINT: http://localhost:9000
       S3_REGION: us-east-1
       S3_ACCESS_KEY: ${S3_ACCESS_KEY:-goyapp}
       S3_SECRET_KEY: ${S3_SECRET_KEY:-goyapp-secret}

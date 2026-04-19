@@ -11,7 +11,13 @@
     "db:push": "pnpm --filter @goyapp/web db:push",
     "db:seed": "pnpm --filter @goyapp/web db:seed",
     "docker:up": "docker compose up --build",
-    "docker:down": "docker compose down -v"
+    "docker:down": "docker compose down -v",
+    "smoke": "bash scripts/smoke.sh",
+    "e2e": "playwright test",
+    "e2e:install": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1"
   },
   "engines": {
     "node": ">=20",

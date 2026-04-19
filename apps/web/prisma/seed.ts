@@ -242,18 +242,18 @@ async function main() {
   }
 
   const demoEmail = "demo@goyapp.local";
-  const existing = await prisma.user.findUnique({ where: { email: demoEmail } });
-  if (!existing) {
-    await prisma.user.create({
-      data: {
-        email: demoEmail,
-        name: "Demo",
-        passwordHash: await bcrypt.hash("demo1234", 12),
-      },
-    });
-  }
+  await prisma.user.upsert({
+    where: { email: demoEmail },
+    create: {
+      email: demoEmail,
+      name: "Admin",
+      passwordHash: await bcrypt.hash("demo1234", 12),
+      role: "ADMIN",
+    },
+    update: { role: "ADMIN" },
+  });
 
-  console.log(`Seeded ${templates.length} templates and demo user (${demoEmail} / demo1234)`);
+  console.log(`Seeded ${templates.length} templates and admin user (${demoEmail} / demo1234)`);
 }
 
 main()
