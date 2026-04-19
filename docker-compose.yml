@@ -58,7 +58,8 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-goyapp}:${POSTGRES_PASSWORD:-goyapp}@db:5432/${POSTGRES_DB:-goyapp}
       AUTH_SECRET: ${AUTH_SECRET:-dev-secret-change-me-please-aaaaaaaaaaaa}
-      AUTH_URL: http://localhost:3000
+      AUTH_URL: ${AUTH_URL:-http://localhost:3000}
+      AUTH_TRUST_HOST: "true"
       PDF_WORKER_URL: http://pdf-worker:4000
       WORKER_SECRET: ${WORKER_SECRET:-dev-worker-secret-change-me}
       S3_ENDPOINT: http://minio:9000
