@@ -1,0 +1,72 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-goyapp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-goyapp}
+      POSTGRES_DB: ${POSTGRES_DB:-goyapp}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-goyapp}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-goyapp-secret}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pdf-worker:
+    build:
+      context: ./apps/pdf-worker
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: 4000
+
+  web:
+    build:
+      context: ./apps/web
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_started
+      pdf-worker:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-goyapp}:${POSTGRES_PASSWORD:-goyapp}@db:5432/${POSTGRES_DB:-goyapp}
+      AUTH_SECRET: ${AUTH_SECRET:-dev-secret-change-me-please-aaaaaaaaaaaa}
+      AUTH_URL: http://localhost:3000
+      PDF_WORKER_URL: http://pdf-worker:4000
+      S3_ENDPOINT: http://minio:9000
+      S3_REGION: us-east-1
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-goyapp}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-goyapp-secret}
+      S3_BUCKET: ${S3_BUCKET:-goyapp}
+    ports:
+      - "3000:3000"
+
+volumes:
+  db-data:
+  minio-data:

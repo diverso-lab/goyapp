@@ -1,55 +1,59 @@
-# Goyapp - Generador de pósters para eventos
+# Goyapp
 
-Este generador de pósters convierte información de eventos, proporcionada en formato Markdown, en pósters visuales en formatos SVG, PNG, JPG, PDF, EPS y PS
+Online poster editor. Log in, pick a template, drag any element freely on a canvas, export to SVG / PNG / JPG / PDF.
 
-## Configuración del Entorno Virtual
+## Stack
 
-1. **Crear el entorno virtual**:
+- **apps/web** — Next.js 15 (App Router), TypeScript, Tailwind, shadcn/ui, Auth.js v5, Prisma, Fabric.js v6
+- **apps/pdf-worker** — Fastify + Puppeteer (PDF rendering from Fabric SVG)
+- **Postgres 16** — users, templates, projects
+- **MinIO** — S3-compatible storage for user-uploaded assets
+- **pnpm** workspaces + **Docker Compose**
 
-```
-python -m venv venv
-```
+## Quick start (Docker — recommended)
 
-2. **Activar el entorno virtual**:
-
-   - En Windows: `.\venv\Scripts\activate`
-   - En macOS y Linux: `source venv/bin/activate`
-
-## Instalación de Dependencias
-
-Instala las dependencias necesarias con el comando:
-
-```
-pip install -r requirements.txt
+```bash
+cp .env.example .env
+docker compose up --build
 ```
 
-## Definición del Markdown
+Then open <http://localhost:3000>. On first boot the web container runs Prisma migrate + seed automatically (3 starter templates + a demo user `demo@goyapp.local` / `demo1234`).
 
-En `markdowns/example.md` puedes definir qué información quieres mostrar en el póster
+MinIO console: <http://localhost:9001> (user/pass from `.env`).
 
+## Local dev (no Docker)
 
-## Ejecución del Generador
+```bash
+pnpm install
+# Start just the infra
+docker compose up db minio pdf-worker -d
+cp .env.example .env
+pnpm --filter @goyapp/web db:push
+pnpm --filter @goyapp/web db:seed
+pnpm dev
+```
 
-Para ejecutar el generador, utiliza el comando:
+## Project layout
 
 ```
-python main.py
+apps/
+  web/         # Next.js app
+  pdf-worker/  # Puppeteer microservice
+docker-compose.yml
 ```
 
-# Archivos Generados por el Script
+## Scripts
 
-Al ejecutar el script, se generarán los siguientes archivos en la carpeta `posters`, organizados en subcarpetas nombradas según el archivo Markdown de origen:
+| Command            | What it does                        |
+| ------------------ | ----------------------------------- |
+| `pnpm dev`         | Next.js dev server                  |
+| `pnpm build`       | Build all apps                      |
+| `pnpm db:push`     | Push Prisma schema to Postgres      |
+| `pnpm db:seed`     | Seed demo user + starter templates  |
+| `pnpm docker:up`   | Bring up full stack in Docker       |
+| `pnpm docker:down` | Tear down stack + volumes           |
 
-- `posters/{nombre_del_md}/{nombre_del_md}.svg`: Este es el póster original generado en formato SVG, donde `{nombre_del_md}` es el nombre del archivo Markdown de origen sin la extensión `.md`.
+## How export works
 
-- `posters/{nombre_del_md}/{nombre_del_md}.png`: Este archivo es la conversión del póster a formato PNG, ubicado en la misma subcarpeta que el archivo SVG.
-
-- `posters/{nombre_del_md}/{nombre_del_md}.jpg`: Similar al archivo PNG, esta es la versión del póster en formato JPG.
-
-- `posters/{nombre_del_md}/{nombre_del_md}.pdf`: El póster también se convierte a formato PDF, facilitando su impresión o distribución en un formato ampliamente utilizado.
-
-- `posters/{nombre_del_md}/{nombre_del_md}.eps`: Para aplicaciones que requieren formatos de gráficos vectoriales, el póster se convierte a formato EPS.
-
-- `posters/{nombre_del_md}/{nombre_del_md}.ps`: Finalmente, se genera una versión del póster en formato PostScript (PS), adecuado para ciertos entornos de impresión profesional.
-
-Cada archivo se almacena dentro de una subcarpeta específica en `posters`, asegurando una organización clara y facilitando el acceso a los pósters generados para cada evento descrito en los archivos Markdown.
+- **SVG / PNG / JPG** — rendered client-side directly from the Fabric canvas (`toSVG`, `toDataURL`).
+- **PDF** — the web app POSTs the Fabric-exported SVG to `pdf-worker`, which renders it in headless Chromium at the canvas's native size and returns a PDF. Fonts are embedded by Chromium, so what you see is what you get.
